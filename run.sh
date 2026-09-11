@@ -20,7 +20,7 @@ log "core:    $(jq -r '.core.latest.version' <<<"${index}")"
 log "adapter: $(jq -r '.latest.version' <<<"${adapter_index}")"
 
 mkdir -p "${CORE_DIR}" "${PLUGIN_DIR}"
-curl -fsSL "${core_tar_url}" | tar -xz -C "${CORE_DIR}" --strip-components=1
+curl -fsSL "${core_tar_url}" | tar -x -C "${CORE_DIR}" --strip-components=1
 curl -fsSL -o "${PLUGIN_DIR}/actions-adapter.jar" "${adapter_jar_url}"
 
 # -Duser.home keeps every piece of state (plugins, logs, secret keystore,
