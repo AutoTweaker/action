@@ -3,7 +3,7 @@ description: Run an AutoTweaker agent autonomously on a GitHub Actions runner
 
 branding:
   icon: cpu
-  color: purple
+  color: blue
 
 inputs:
   prompt:
