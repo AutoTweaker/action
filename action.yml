@@ -1,0 +1,62 @@
+name: AutoTweaker
+description: Run an AutoTweaker agent autonomously on a GitHub Actions runner
+
+branding:
+  icon: cpu
+  color: purple
+
+inputs:
+  prompt:
+    description: Task the agent should complete.
+    required: true
+  api-key:
+    description: API key of the LLM provider.
+    required: true
+  provider-type:
+    description: LLM provider type, such as deepseek.
+    required: true
+  model-id:
+    description: Model id to use, such as deepseek-chat.
+    required: true
+  reasoning:
+    description: 'Reasoning effort: none, minimal, low, medium, high, or xhigh (case-insensitive). Leave empty to use the provider default.'
+    required: false
+    default: ''
+  base-url:
+    description: Base URL of the provider. Leave empty to use the provider default.
+    required: false
+    default: ''
+  workspace:
+    description: Directory the agent works in. Defaults to the checked-out repository.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version: '25'
+
+    - name: Run AutoTweaker
+      id: run
+      shell: bash
+      env:
+        INPUT_PROMPT: ${{ inputs.prompt }}
+        INPUT_API_KEY: ${{ inputs.api-key }}
+        INPUT_PROVIDER_TYPE: ${{ inputs.provider-type }}
+        INPUT_MODEL_ID: ${{ inputs.model-id }}
+        INPUT_REASONING: ${{ inputs.reasoning }}
+        INPUT_BASE_URL: ${{ inputs.base-url }}
+        INPUT_WORKSPACE: ${{ inputs.workspace || github.workspace }}
+      run: bash "${{ github.action_path }}/run.sh"
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: autotweaker-logs
+        path: ${{ runner.temp }}/autotweaker/home/.config/autotweaker/logs
+        if-no-files-found: ignore
