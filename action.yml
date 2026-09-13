@@ -55,8 +55,9 @@ runs:
 
     - name: Upload logs
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: autotweaker-logs
         path: ${{ runner.temp }}/autotweaker/home/.config/autotweaker/logs
         if-no-files-found: ignore
+        overwrite: true
