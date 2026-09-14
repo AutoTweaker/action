@@ -16,18 +16,22 @@ inputs:
     description: LLM provider type, such as deepseek.
     required: true
   model-id:
-    description: Model id to use, such as deepseek-chat.
+    description: Model id to use, such as deepseek-flash.
     required: true
   reasoning:
-    description: 'Reasoning effort: none, minimal, low, medium, high, or xhigh (case-insensitive). Leave empty to use the provider default.'
+    description: 'Reasoning effort: none, minimal, low, medium, high, or xhigh.'
     required: false
     default: ''
   base-url:
-    description: Base URL of the provider. Leave empty to use the provider default.
+    description: Base URL of the provider.
     required: false
     default: ''
   workspace:
-    description: Directory the agent works in. Defaults to the checked-out repository.
+    description: Directory the agent works in.
+    required: false
+    default: ''
+  plugin-urls:
+    description: URLs of extra plugin jars, one per line.
     required: false
     default: ''
 
@@ -51,6 +55,7 @@ runs:
         INPUT_REASONING: ${{ inputs.reasoning }}
         INPUT_BASE_URL: ${{ inputs.base-url }}
         INPUT_WORKSPACE: ${{ inputs.workspace || github.workspace }}
+        INPUT_PLUGIN_URLS: ${{ inputs.plugin-urls }}
       run: bash "${{ github.action_path }}/run.sh"
 
     - name: Upload logs

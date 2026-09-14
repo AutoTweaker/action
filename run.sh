@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# stdout is reserved for the adapter, everything here goes to stderr.
-log() { printf '%s\n' "$*" >&2; }
+log() {
+    local msg="${*//'%'/'%25'}"
+    msg="${msg//$'\r'/'%0D'}"
+    msg="${msg//$'\n'/'%0A'}"
+    printf '::notice::%s\n' "${msg}"
+}
 
 INDEX_URL="https://autotweaker.github.io/index/"
 ROOT="${RUNNER_TEMP}/autotweaker"
@@ -23,11 +27,21 @@ mkdir -p "${CORE_DIR}" "${PLUGIN_DIR}"
 curl -fsSL "${core_tar_url}" | tar -x -C "${CORE_DIR}" --strip-components=1
 curl -fsSL -o "${PLUGIN_DIR}/actions-adapter.jar" "${adapter_jar_url}"
 
-# -Duser.home keeps every piece of state (plugins, logs, secret keystore,
-# database) under $RUNNER_TEMP instead of the runner's real home. gpg follows
-# along, because GNUPGHOME is derived from CONFIG_PATH rather than $HOME.
-# -Dlog.level=OFF silences the STDOUT appender only; the JSONL file appender and
-# the shared log bus stay intact, which is what the uploaded logs come from.
+while IFS= read -r url; do
+    url="${url#"${url%%[![:space:]]*}"}"
+    url="${url%"${url##*[![:space:]]}"}"
+    [ -n "${url}" ] || continue
+
+    name=$(basename "${url%%\?*}")
+    if [ -z "${name}" ]; then
+        log "skip plugin url without a file name: ${url}"
+        continue
+    fi
+
+    log "plugin:  ${name} <- ${url}"
+    curl -fsSL -o "${PLUGIN_DIR}/${name}" "${url}"
+done <<<"${INPUT_PLUGIN_URLS:-}"
+
 export AUTOTWEAKER_OPTS="-Dlog.level=OFF -Duser.home=${CORE_HOME}"
 
 exec "${CORE_DIR}/bin/autotweaker"
